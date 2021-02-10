@@ -113,6 +113,8 @@ class ReservationSerializer(serializers.ModelSerializer):
             invitations,
         ) = self.get_data_from_request_data_or_from_instance(data)
 
+        print(room, start_time, end_time, creator, invitations)
+
         if invitations:
             self.validate_owner_does_not_invite_himself(creator, invitations)
         self.validate_times(start_time, end_time)
@@ -129,18 +131,16 @@ class ReservationSerializer(serializers.ModelSerializer):
 
         if "from_date" in data:
             start_time = data["from_date"]
-            print(start_time)
         else:
             start_time = self.instance.from_date
 
         if "to_date" in data:
             end_time = data["to_date"]
-            print(end_time)
         else:
             end_time = self.instance.to_date
 
         if "creator" in data:
-            creator = data["room"]
+            creator = data["creator"]
         else:
             creator = self.instance.creator
 
