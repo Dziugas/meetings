@@ -21,7 +21,7 @@ class Reservation(models.Model):
         related_name="meetings_created",
         on_delete=models.CASCADE,
     )
-    attendee = models.ManyToManyField(
+    attendees = models.ManyToManyField(
         settings.AUTH_USER_MODEL, through="Invitation", related_name="meetings"
     )
 
@@ -38,7 +38,7 @@ class Invitation(models.Model):
         (NOT_ATTENDING, _("The guest will not attend the meeting")),
         (MAYBE, _("The guest hasn't decided yet")),
     )
-    status = models.PositiveSmallIntegerField(choices=STATUS, default=3)
+    status = models.CharField(max_length=200, choices=STATUS, default=MAYBE)
     reservation = models.ForeignKey(
         Reservation, related_name="guests", on_delete=models.CASCADE
     )
