@@ -12,7 +12,7 @@ jobs:
           command: sudo docker-compose up -d
 
       - run:
-          name: Create and run migrations, tests and linter
+          name: Create and run migrations and tests
           command: |
             sudo chmod +x manage.py
             sudo docker exec -it meetings python manage.py migrate
