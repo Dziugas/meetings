@@ -50,7 +50,9 @@ class ReservationTests(APITestCase):
             "guests": [{"invitee": self.user_invitee.id}],
         }
         self.client.force_authenticate(user=self.user_creator)
-        response = self.client.post(self.reservations_url, data, format="json")
+        response = self.client.post(
+            self.reservations_url, data, format="json"
+        )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_auth_user_can_create_reservation_without_guests(self):
@@ -62,7 +64,9 @@ class ReservationTests(APITestCase):
             "creator": self.user_creator.id,
         }
         self.client.force_authenticate(user=self.user_creator)
-        response = self.client.post(self.reservations_url, data, format="json")
+        response = self.client.post(
+            self.reservations_url, data, format="json"
+        )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_auth_user_cant_create_two_reservations_with_same_time(self):
@@ -103,10 +107,10 @@ class ReservationTests(APITestCase):
             room=self.room,
             creator=self.user_creator,
         )
-        invitation1 = Invitation.objects.create(
+        Invitation.objects.create(
             reservation=reservation1, invitee=self.user_invitee
         )
-        reservation2 = Reservation.objects.create(
+        Reservation.objects.create(
             title="Go meetup 2",
             from_date=datetime(2021, 2, 24, 13, 00, 00),
             to_date=datetime(2021, 2, 24, 14, 00, 00),
@@ -143,7 +147,7 @@ class ReservationTests(APITestCase):
             room=self.room,
             creator=self.user_creator,
         )
-        invitation = Invitation.objects.create(
+        Invitation.objects.create(
             reservation=reservation, invitee=self.user_invitee
         )
 
@@ -169,7 +173,7 @@ class ReservationTests(APITestCase):
             room=self.room,
             creator=self.user_creator,
         )
-        invitation = Invitation.objects.create(
+        Invitation.objects.create(
             reservation=reservation, invitee=self.user_invitee
         )
 

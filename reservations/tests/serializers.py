@@ -30,7 +30,7 @@ class ReservationSerializerTests(APITestCase):
     ):
         room = MeetingRoom.objects.create(title="Games room")
         john = User.objects.create(username="john", password="123456")
-        reservation = Reservation.objects.create(
+        Reservation.objects.create(
             title="Foosball break",
             from_date=self.start,
             to_date=self.end,
@@ -58,7 +58,6 @@ class ReservationSerializerTests(APITestCase):
             room=room,
             creator=john,
         )
-        old_invitation_data = reservation.guests.all()
 
         new_invitation_data = [{"invitee": zigmas}, {"invitee": peter}]
         serializer = ReservationSerializer(instance=reservation)
@@ -79,14 +78,12 @@ class ReservationSerializerTests(APITestCase):
             room=room,
             creator=john,
         )
-        invitation1 = Invitation.objects.create(
+        Invitation.objects.create(
             reservation=reservation, invitee=peter
         )
-        invitation2 = Invitation.objects.create(
+        Invitation.objects.create(
             reservation=reservation, invitee=zigmas
         )
-
-        old_invitation_data = reservation.guests.all()
 
         new_invitation_data = [{"invitee": zigmas}]
 
@@ -110,11 +107,9 @@ class ReservationSerializerTests(APITestCase):
             room=room,
             creator=john,
         )
-        invitation1 = Invitation.objects.create(
+        Invitation.objects.create(
             reservation=reservation, invitee=peter
         )
-        old_invitation_data = reservation.guests.all()
-
         new_invitation_data = [{"invitee": zigmas}]
 
         serializer = ReservationSerializer(instance=reservation)
