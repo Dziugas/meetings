@@ -109,14 +109,8 @@ class ReservationSerializer(serializers.ModelSerializer):
             room,
             start_time,
             end_time,
-            creator,
-            invitations,
         ) = self.get_data_from_request_data_or_from_instance(data)
 
-        print(room, start_time, end_time, creator, invitations)
-
-        if invitations:
-            self.validate_owner_does_not_invite_himself(creator, invitations)
         self.validate_times(start_time, end_time)
         self.validate_if_there_are_no_other_meetings_at_the_same_time(
             room, start_time, end_time
@@ -139,16 +133,7 @@ class ReservationSerializer(serializers.ModelSerializer):
         else:
             end_time = self.instance.to_date
 
-        if "creator" in data:
-            creator = data["creator"]
-        else:
-            creator = self.instance.creator
-
-        if "guests" in data:
-            invitations = data["guests"]
-        else:
-            invitations = self.instance.guests.all()
-        return room, start_time, end_time, creator, invitations
+        return room, start_time, end_time
 
     def validate_if_there_are_no_other_meetings_at_the_same_time(
         self, room, start_time, end_time
@@ -180,11 +165,3 @@ class ReservationSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 "Start time must be set earlier than end time"
             )
-
-    def validate_owner_does_not_invite_himself(self, creator, invitations):
-        for invitation in invitations:
-            invitee = invitation["invitee"]
-            if invitee == creator:
-                raise serializers.ValidationError(
-                    "The creator of the event should not invite himself"
-                )
