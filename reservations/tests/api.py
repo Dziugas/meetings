@@ -23,7 +23,22 @@ class TestRooms(APITestCase):
         response = self.client.post(self.rooms_url, data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data["title"], "DevOps Room")
-
+        
+    def test_room_endpoint_displays_related_reservations(self):
+        room = MeetingRoom.objects.create(title="Guest room")
+        reservation = Reservation.objects.create(
+            title="Guest break",
+            from_date="2031-02-27 13:00:00",
+            to_date="2031-02-27 15:00:00",
+            room=room,
+            creator=self.user,
+        )
+        room_url = f'{self.rooms_url}{room.id}/'
+                
+        self.client.force_authenticate(user=self.user)
+        response = self.client.get(room_url)
+        
+        self.assertEqual(len(response.data["reservations"]), 1)
 
 class ReservationTests(APITestCase):
     def setUp(self):

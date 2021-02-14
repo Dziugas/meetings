@@ -3,12 +3,6 @@ from .models import MeetingRoom, Reservation, Invitation
 from django.db.models import Q
 
 
-class MeetingRoomSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = MeetingRoom
-        fields = "__all__"
-
-
 class InvitationSerializer(serializers.ModelSerializer):
     reservation = serializers.CharField(read_only=True)
 
@@ -165,3 +159,11 @@ class ReservationSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 "Start time must be set earlier than end time"
             )
+
+
+class MeetingRoomSerializer(serializers.ModelSerializer):
+    reservations = ReservationSerializer(many=True, required=False)
+
+    class Meta:
+        model = MeetingRoom
+        fields = "__all__"
