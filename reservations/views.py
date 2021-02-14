@@ -13,8 +13,8 @@ class ReservationViewset(viewsets.ModelViewSet):
 
     def get_queryset(self):
         """
-        Shows only reservations related to the provided user by the
-        provided user_id query parameter in the URL
+        Shows only reservations related to the provided user, if the
+        user_id is provided as a query parameter in the URL
         """
         queryset = Reservation.objects.all()
         user_id = self.request.query_params.get("user_id", None)
@@ -31,5 +31,17 @@ class InvitationViewset(viewsets.ModelViewSet):
 
 
 class MeetingRoomViewset(viewsets.ModelViewSet):
-    queryset = MeetingRoom.objects.all()
     serializer_class = MeetingRoomSerializer
+    
+    def get_queryset(self):
+        """
+        Shows only reservations related to the provided user, if the
+        user_id is provided as a query parameter in the URL
+        """
+        queryset = MeetingRoom.objects.all()
+        user_id = self.request.query_params.get("user_id", None)
+        if user_id is not None:
+            queryset = queryset.filter(
+                Q(reservations__creator__id=user_id) | Q(reservations__attendees__id=user_id),
+            ).distinct()
+        return queryset

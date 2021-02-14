@@ -40,6 +40,30 @@ class TestRooms(APITestCase):
         
         self.assertEqual(len(response.data["reservations"]), 1)
 
+    def test_rooms_list_endpoint_can_be_filtered_by_user_id(self):
+        room = MeetingRoom.objects.create(title="Cake room")
+        reservation = Reservation.objects.create(
+            title="Guest break",
+            from_date="2041-02-27 13:00:00",
+            to_date="2041-02-27 15:00:00",
+            room=room,
+            creator=self.user,
+        )
+        petras = User.objects.create(username="peter", password="123456")
+        zigmas = User.objects.create(username="zigmas", password="123456")
+        Invitation.objects.create(
+            reservation=reservation, invitee=petras
+        )
+        Invitation.objects.create(
+            reservation=reservation, invitee=zigmas
+        )
+
+        room_url_with_parameter = f'{self.rooms_url}?user_id={petras.id}'
+        self.client.force_authenticate(user=self.user)
+        response = self.client.get(room_url_with_parameter)
+        self.assertEqual(len(response.data[0]["reservations"]), 1)
+
+
 class ReservationTests(APITestCase):
     def setUp(self):
         self.reservations_url = reverse("reservations-list")
@@ -201,5 +225,4 @@ class ReservationTests(APITestCase):
         reservation_url = f"{self.reservations_url}{reservation.id}/"
         self.client.force_authenticate(user=self.user_creator)
         response = self.client.patch(reservation_url, data, format="json")
-        print(response.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
