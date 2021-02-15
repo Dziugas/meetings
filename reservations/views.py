@@ -1,3 +1,4 @@
+import logging
 from django.db.models.query_utils import Q
 from rest_framework import viewsets
 from .models import MeetingRoom, Reservation, Invitation
@@ -6,6 +7,8 @@ from .serializers import (
     ReservationSerializer,
     InvitationSerializer,
 )
+
+logger = logging.getLogger("django")
 
 
 class ReservationViewset(viewsets.ModelViewSet):
@@ -19,6 +22,7 @@ class ReservationViewset(viewsets.ModelViewSet):
         queryset = Reservation.objects.all()
         user_id = self.request.query_params.get("user_id", None)
         if user_id is not None:
+            logger.info(f"Filtering reservations with user_id: {user_id}")
             queryset = queryset.filter(
                 Q(creator__id=user_id) | Q(attendees__id=user_id)
             )
@@ -32,7 +36,7 @@ class InvitationViewset(viewsets.ModelViewSet):
 
 class MeetingRoomViewset(viewsets.ModelViewSet):
     serializer_class = MeetingRoomSerializer
-    
+
     def get_queryset(self):
         """
         Shows only reservations related to the provided user, if the
@@ -41,7 +45,9 @@ class MeetingRoomViewset(viewsets.ModelViewSet):
         queryset = MeetingRoom.objects.all()
         user_id = self.request.query_params.get("user_id", None)
         if user_id is not None:
+            logger.info(f"Filtering reservations with user_id: {user_id}")
             queryset = queryset.filter(
-                Q(reservations__creator__id=user_id) | Q(reservations__attendees__id=user_id),
+                Q(reservations__creator__id=user_id)
+                | Q(reservations__attendees__id=user_id),
             ).distinct()
         return queryset

@@ -131,3 +131,27 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     ]
 }
+
+LOGGING = {
+    'version':1,
+    'disable_existing_loggers': False,
+    'loggers':{
+        'django' :{
+            'handlers': ['console'],
+            'level': os.environ.get('DJANGO_LOG_LEVEL', 'INFO')
+        }
+    },
+    'handlers':{
+        'console':{
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'console',
+            }
+        },
+    'formatters':{
+        'console':{
+            'format': '{asctime} {name} {levelname} {message}',
+            'style': '{',
+            }
+        },
+}

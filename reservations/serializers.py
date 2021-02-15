@@ -1,6 +1,9 @@
+import logging
+from django.db.models import Q
 from rest_framework import serializers
 from .models import MeetingRoom, Reservation, Invitation
-from django.db.models import Q
+
+logger = logging.getLogger("django")
 
 
 class InvitationSerializer(serializers.ModelSerializer):
@@ -27,6 +30,10 @@ class ReservationSerializer(serializers.ModelSerializer):
         ]
 
     def create(self, validated_data):
+        logger.info(
+            f"Creating a new reservation with the following validated data: "
+            f"{validated_data}"
+        )
         invitations = validated_data.get("guests", None)
         if invitations:
             invitations = validated_data.pop("guests")
@@ -40,6 +47,10 @@ class ReservationSerializer(serializers.ModelSerializer):
         return reservation
 
     def update(self, instance, validated_data):
+        logger.info(
+            f"Updating a reservation with id {instance.id} with the following "
+            f"validated data: {validated_data}"
+        )
         instance.title = validated_data.get("title", instance.title)
         instance.from_date = validated_data.get(
             "from_date", instance.from_date
@@ -55,10 +66,18 @@ class ReservationSerializer(serializers.ModelSerializer):
         return instance
 
     def update_invitation_data(self, new_invitation_data):
+        """
+        Update invitations depending if new data has the same number of
+        invitations, more invitations or less invitations than before
+        """
         old_invitation_data = self.instance.guests.all()
         if old_invitation_data:
 
             if len(new_invitation_data) == len(old_invitation_data):
+                logger.info(
+                    "updating with the reservation with the same number of "
+                    "invitations"
+                )
                 for number, old_invitation in enumerate(old_invitation_data):
                     old_invitation.invitee = new_invitation_data[number].get(
                         "invitee", old_invitation.invitee
@@ -66,6 +85,10 @@ class ReservationSerializer(serializers.ModelSerializer):
                     old_invitation.save()
 
             elif len(new_invitation_data) > len(old_invitation_data):
+                logger.info(
+                    "updating with the reservation with more "
+                    "invitations than before"
+                )
                 for number, new_invitation in enumerate(new_invitation_data):
                     if number < len(old_invitation_data):
                         old_invitation_data[
@@ -80,6 +103,10 @@ class ReservationSerializer(serializers.ModelSerializer):
                         )
 
             elif len(new_invitation_data) < len(old_invitation_data):
+                logger.info(
+                    "updating with the reservation with less invitations"
+                    "than before"
+                )
                 for number, old_invitation in enumerate(old_invitation_data):
                     if number < len(new_invitation_data):
                         old_invitation.invitee = new_invitation_data[
@@ -89,12 +116,18 @@ class ReservationSerializer(serializers.ModelSerializer):
                     else:
                         old_invitation.delete()
         else:
+            logger.info(
+                "updating the reservation which previously had no invitations"
+                "with new invitations"
+            )
             for new_invitation in new_invitation_data:
                 Invitation.objects.create(
                     reservation=self.instance, **new_invitation
                 )
 
     def validate(self, data):
+        logger.info(f"Validating the following request data: {data}")
+
         """
         Check that the room is empty at the required time, that the meeting
         starts before it ends, and that the creator does not invite himself
@@ -112,6 +145,11 @@ class ReservationSerializer(serializers.ModelSerializer):
         return data
 
     def get_data_from_request_data_or_from_instance(self, data):
+        """
+        Get data for validation either from instance in case of update
+        requests or from provided request data
+        """
+
         if "room" in data:
             room = data["room"]
         else:
@@ -132,6 +170,7 @@ class ReservationSerializer(serializers.ModelSerializer):
     def validate_if_there_are_no_other_meetings_at_the_same_time(
         self, room, start_time, end_time
     ):
+        # if validating during update
         if self.instance:
             reservation_id = self.instance.id
             same_time_same_room = (
@@ -143,6 +182,7 @@ class ReservationSerializer(serializers.ModelSerializer):
                     | Q(from_date__lt=end_time, to_date__gte=end_time)
                 )
             )
+        # if validating during create
         else:
             same_time_same_room = Reservation.objects.filter(room=room).filter(
                 Q(from_date=start_time, to_date=end_time)
@@ -150,12 +190,20 @@ class ReservationSerializer(serializers.ModelSerializer):
                 | Q(from_date__lt=end_time, to_date__gte=end_time)
             )
         if same_time_same_room.exists():
+            logger.info(
+                f"Meeting time clash validation error for room: {room.id},"
+                f"start time: {start_time} and end time: {end_time} "
+            )
             raise serializers.ValidationError(
                 "There is an overlap with another reservation"
             )
 
     def validate_times(self, start, end):
         if start >= end:
+            logger.info(
+                f"Time validation error with start time {start},"
+                f"end time {end}"
+            )
             raise serializers.ValidationError(
                 "Start time must be set earlier than end time"
             )
