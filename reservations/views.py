@@ -29,11 +29,6 @@ class ReservationViewset(viewsets.ModelViewSet):
         return queryset
 
 
-class InvitationViewset(viewsets.ModelViewSet):
-    queryset = Invitation.objects.all()
-    serializer_class = InvitationSerializer
-
-
 class MeetingRoomViewset(viewsets.ModelViewSet):
     serializer_class = MeetingRoomSerializer
 
